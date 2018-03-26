@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Weather Forecast</title>
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script type="text/javascript">
+		function getCardinalDirection(degree){
+			if(degree > 11.25 && degree <= 33.75) return "North North East";
+			else if(degree > 33.75 && degree <= 56.25) return "North East";
+			else if(degree > 56.25 && degree <= 78.75) return "East North East";
+			else if(degree > 78.75 && degree <= 101.25) return "East";
+			else if(degree > 101.25 && degree <= 123.75) return "East South East";
+			else if(degree > 123.75 && degree <= 146.25) return "South East";
+			else if(degree > 146.25 && degree <= 168.75) return "South South East";
+			else if(degree > 168.75 && degree <= 191.25) return "South";
+			else if(degree > 191.25 && degree <= 213.75) return "South South West";
+			else if(degree > 213.75 && degree <= 236.25) return "South West";
+			else if(degree > 236.25 && degree <= 258.75) return "West South West";
+			else if(degree > 258.75 && degree <= 281.25) return "West";
+			else if(degree > 281.25 && degree <= 303.75) return "West North West";
+			else if(degree > 303.75 && degree <= 326.25) return "North West";
+			else if(degree > 326.25 && degree <= 348.75) return "North North West";
+			else if(degree > 348.75 || degree <= 11.25) return "North";
+		}
+
+
+		$(document).ready(function(){
+			$('#previouscities').data('cities', []) //initialize array for previous visited cities in sid-nav
+			$('form').submit(function(event){
+				event.preventDefault(); //prevent page refresh
+				//ajax request for weathe info, if succeed display city and weather info, otherwise notify user that we can't find the city
+				$.get('http://api.openweathermap.org/data/2.5/weather?q='+$("#city").val()+'&units=imperial&APPID=c8289e219d0ee2cdd326dba079c8acac').done(function (res){
+					$('#display').html('<h1>'+res.name+'</h1><p>Currently '+res.weather[0].description+' with ' + res.wind.speed +' mph wind out of the ' + getCardinalDirection(res.wind.deg) + '.<h3>Temperature</h3><ul><li>Current: '+res.main.temp+'</li><li>Minumum: '+res.main.temp_min+'</li><li>Maximum: '+res.main.temp_max+'</li></ul><h3>Humidity</h3><ul><li>'+res.main.humidity +'%');
+						if(!$('#previouscities').data().cities.includes($("#city").val().toLowerCase())){ //if new city add to previous cities
+						$('#previouscities').data().cities.push($("#city").val().toLowerCase());
+						$('#previouscities').append('<p>'+$("#city").val()+'</p>');
+						$('#previouscities p:nth-last-of-type(1)').hover(function(){
+							$(this).toggleClass('selected');
+						});
+						$('#previouscities p:nth-last-of-type(1)').click(function(){ //make previous cities clickable to view weather info
+							$.get('http://api.openweathermap.org/data/2.5/weather?q='+$(this)[0].textContent+'&units=imperial&APPID=c8289e219d0ee2cdd326dba079c8acac', function(res){
+								$('#display').html('<h1>'+res.name+'</h1><p>Currently '+res.weather[0].description+' with ' + res.wind.speed +' mph wind out of the ' + getCardinalDirection(res.wind.deg) + '.<h3>Temperature</h3><ul><li>Current: '+res.main.temp+'</li><li>Minumum: '+res.main.temp_min+'</li><li>Maximum: '+res.main.temp_max+'</li></ul><h3>Humidity</h3><ul><li>'+res.main.humidity +'%');
+							});
+						});
+					}
+				}).fail(function () {
+					$('#display').html('<h1>We can not find ' + $("#city").val() + '</h1><p>Is it spelled correctly?</p>');
+				});
+			});
+		});
+	</script>
+</head>
+<body>
+	<div class="container">
+		<div class="banner"><img src="title.png" alt="weather forecast logo"><h3>A source for all your weather questions</h3></div>
+		<div class="side-nav"><h4>Previous cities searched</h4><hr><div id="previouscities"></div></div>
+		<div class="main">
+			<form>
+				<label for="city">Enter a city name:</label>
+				<input type="text" name="city" id="city">
+				<input type="submit" name="submit">
+			</form>
+			<div id="display"></div>
+		</div>
+	</div>
+</body>
+</html>
+<!-- c8289e219d0ee2cdd326dba079c8acac -->
+<!-- http://api.openweathermap.org/data/2.5/forecast?id=524901&APPID={APIKEY} -->
